@@ -1,13 +1,12 @@
 package main
 
 import (
-	"context"
 	"encoding/xml"
+	"github.com/kfsworks/weather-warning/helper"
 	"github.com/mqu/go-notify"
-	"io/ioutil"
 	"log"
-	"net/http"
-	"time"
+	"os"
+	"strings"
 )
 
 func init() {
@@ -31,45 +30,20 @@ type WeatherWarning struct {
 }
 
 func main() {
-	log.Println("")
-
 	urltext := "https://rss.weather.gov.hk/rss/WeatherWarningBulletin.xml"
-
-	req, err := http.NewRequest("GET", urltext, nil)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	req = req.WithContext(ctx)
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	//log.Println(string(body))
+	body := helper.GetHttpContent(urltext)
 
 	v := WeatherWarning{}
-	err = xml.Unmarshal(body, &v)
+	err := xml.Unmarshal(body, &v)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	log.Println("result ...")
-	log.Println(v)
-	//nowarning
-	log.Println(" ... done result ")
+	if strings.Contains(v.Guid, "nowarning") {
+		os.Exit(0)
+	}
 
-	notify.Init("Hello world")
-	hello := notify.NotificationNew("Hello World!", v.Description, "dialog-information")
-	hello.Show()
+	notify.Init("Weather Warning")
+	warning := notify.NotificationNew("Weather Warning!", v.Description, "dialog-information")
+	warning.Show()
 }
