@@ -5,36 +5,35 @@ package hongkong
 import (
 	"encoding/xml"
 	"github.com/kfsworks/weather-warning/helper"
+	"github.com/kfsworks/weather-warning/processor"
 	"log"
-	//"strings"
+	"strings"
 	"time"
 )
 
 const rssUrl = "https://rss.weather.gov.hk/rss/WeatherWarningBulletin.xml"
 
-type HKWeatherWarning struct {
+type HKWeatherWarningInfo struct {
 	Title       string `xml:"channel>item>title"`
 	Description string `xml:"channel>item>description"`
 	PubDate     string `xml:"channel>item>pubDate"`
 	Guid        string `xml:"channel>item>guid"`
 }
 
-func Process() (string, string, time.Time) {
+func Process() processor.WeatherWarning {
 	xmlBytes := helper.GetHttpContent(rssUrl)
 
-	warning := HKWeatherWarning{}
-	err := xml.Unmarshal(xmlBytes, &warning)
+	info := HKWeatherWarningInfo{}
+	err := xml.Unmarshal(xmlBytes, &info)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	t, _ := time.Parse(time.RFC1123Z, warning.PubDate)
-	//log.Println(t)
-
-	if strings.Contains(v.Guid, "nowarning") {
-		log.Println("no warning")
-		return nil, nil, nil
+	result := processor.WeatherWarning{Title: info.Title, Description: info.Description}
+	if !strings.Contains(info.Guid, "nowarning") {
+		t, _ := time.Parse(time.RFC1123Z, info.PubDate)
+		result.PubDate = t
 	}
 
-	return warning.Title, warning.Description, t
+	return result
 }
