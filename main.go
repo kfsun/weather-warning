@@ -21,12 +21,14 @@ func init() {
 	//https://rss.weather.gov.hk/rss/QuickEarthquakeMessage.xml
 	//https://rss.weather.gov.hk/rss/FeltEarthquake.xml
 
+	//<pubDate>Fri, 21 Sep 2018 11:45:00 +0800</pubDate>
 }
 
 type WeatherWarning struct {
 	Title       string `xml:"channel>item>title"`
 	Description string `xml:"channel>item>description"`
-	Guid        string `xml:"channel>item>guid"`
+	PubDate
+	Guid string `xml:"channel>item>guid"`
 }
 
 func main() {
@@ -44,6 +46,7 @@ func main() {
 	}
 
 	notify.Init("Weather Warning")
-	warning := notify.NotificationNew("Weather Warning!", v.Description, "dialog-information")
+	//warning := notify.NotificationNew("Weather Warning!", v.Description, "dialog-information")
+	warning := notify.NotificationNew(v.Title, v.Description, "dialog-information")
 	warning.Show()
 }
