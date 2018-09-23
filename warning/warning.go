@@ -1,4 +1,4 @@
-package processor
+package warning
 
 import (
 	"time"
@@ -8,10 +8,6 @@ type WeatherWarning struct {
 	Title       string
 	Description string
 	PubDate     time.Time
-}
-
-type operation interface {
-	Fetch()
 }
 
 func (p *WeatherWarning) IsNoWarning() bool {
