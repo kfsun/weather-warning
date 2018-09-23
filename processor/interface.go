@@ -11,7 +11,7 @@ type WeatherWarning struct {
 }
 
 type operation interface {
-	Process() WeatherWarning
+	Fetch()
 }
 
 func (p *WeatherWarning) IsNoWarning() bool {

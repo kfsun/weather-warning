@@ -1,19 +1,13 @@
 package main
 
 import (
-	hkprocessor "github.com/kfsworks/weather-warning/processor/hongkong"
-	"github.com/mqu/go-notify"
-	"os"
+	"fmt"
+	"github.com/kfsworks/weather-warning/processor"
 )
 
 func main() {
-	result := hkprocessor.Process()
+	processor.Process()
 
-	if result.IsNoWarning() {
-		os.Exit(0)
-	}
-
-	notify.Init("Weather Warning")
-	warning := notify.NotificationNew(result.Title, result.Description, "dialog-information")
-	warning.Show()
+	var input string
+	fmt.Scanln(&input)
 }
