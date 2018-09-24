@@ -28,9 +28,7 @@ func (p *HKOInfo) GetPublishTimestamp() time.Time {
 }
 
 func (p *HKOInfo) IsNewWarning(previousWarning *warning.WeatherWarning) bool {
-	if previousWarning.PubDate.IsZero() {
-		log.Println("save to old")
-	} else {
+	if !previousWarning.PubDate.IsZero() {
 		pub := p.GetPublishTimestamp()
 		diff := pub.Sub(previousWarning.PubDate)
 		if diff.Nanoseconds() == 0 {
