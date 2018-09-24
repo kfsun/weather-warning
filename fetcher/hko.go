@@ -1,5 +1,3 @@
-/*
- */
 package fetcher
 
 import (
@@ -13,15 +11,39 @@ import (
 
 const rssUrl = "https://rss.weather.gov.hk/rss/WeatherWarningBulletin.xml"
 
-type HKWeatherWarningInfo struct {
+type HKOInfo struct {
 	Title       string `xml:"channel>item>title"`
 	Description string `xml:"channel>item>description"`
 	PubDate     string `xml:"channel>item>pubDate"`
 	Guid        string `xml:"channel>item>guid"`
 }
 
-func parse(b []byte) HKWeatherWarningInfo {
-	info := HKWeatherWarningInfo{}
+func (p *HKOInfo) IsWarningMessage() bool {
+	return !strings.Contains(p.Guid, "nowarning")
+}
+
+func (p *HKOInfo) GetPublishTimestamp() time.Time {
+	t, _ := time.Parse(time.RFC1123Z, p.PubDate)
+	return t
+}
+
+func (p *HKOInfo) IsNewWarning(previousWarning *warning.WeatherWarning) bool {
+	if previousWarning.PubDate.IsZero() {
+		log.Println("save to old")
+	} else {
+		pub := p.GetPublishTimestamp()
+		diff := pub.Sub(previousWarning.PubDate)
+		if diff.Nanoseconds() == 0 {
+			log.Println("same and skip")
+			return false
+		}
+	}
+
+	return true
+}
+
+func parse(b []byte) HKOInfo {
+	info := HKOInfo{}
 	err := xml.Unmarshal(b, &info)
 	if err != nil {
 		log.Fatalln(err)
@@ -31,18 +53,26 @@ func parse(b []byte) HKWeatherWarningInfo {
 }
 
 func Fetch(c chan warning.WeatherWarning) {
+	var oldWarning warning.WeatherWarning
+
 	for {
 		xmlBytes := helper.GetHttpContent(rssUrl)
 
 		info := parse(xmlBytes)
-
-		result := warning.WeatherWarning{Title: info.Title, Description: info.Description}
-		if !strings.Contains(info.Guid, "nowarning") {
-			t, _ := time.Parse(time.RFC1123Z, info.PubDate)
-			result.PubDate = t
+		if !info.IsWarningMessage() {
+			continue
 		}
 
-		c <- result
+		if info.IsNewWarning(&oldWarning) {
+			result := warning.WeatherWarning{
+				Title:       info.Title,
+				Description: info.Description,
+				PubDate:     info.GetPublishTimestamp(),
+			}
+			oldWarning = result
+			c <- result
+		}
+
 		time.Sleep(time.Second * 10)
 	}
 }
