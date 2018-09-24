@@ -32,7 +32,6 @@ func (p *HKOInfo) IsNewWarning(previousWarning *warning.WeatherWarning) bool {
 		pub := p.GetPublishTimestamp()
 		diff := pub.Sub(previousWarning.PubDate)
 		if diff.Nanoseconds() == 0 {
-			log.Println("same and skip")
 			return false
 		}
 	}
