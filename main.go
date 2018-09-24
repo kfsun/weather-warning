@@ -1,7 +1,6 @@
 package main
 
 import (
-	//	"fmt"
 	"github.com/kfsworks/weather-warning/fetcher"
 	"github.com/kfsworks/weather-warning/warning"
 	"github.com/mqu/go-notify"
@@ -24,7 +23,7 @@ func sendNotification(c chan warning.WeatherWarning) {
 }
 
 //func cleanup() {
-//   fmt.Println("cleanup")
+//pprof.StopCPUProfile()
 //}
 
 func main() {
@@ -41,12 +40,10 @@ func main() {
 	go func() {
 		<-cs
 		//cleanup()
-		//pprof.StopCPUProfile()
 		os.Exit(1)
 	}()
 
 	for {
-		//fmt.Println("sleeping...")
-		time.Sleep(10 * time.Second) // or runtime.Gosched() or similar per @misterbee
+		time.Sleep(10 * time.Second)
 	}
 }
