@@ -11,5 +11,5 @@ type WeatherWarning struct {
 }
 
 func (p *WeatherWarning) IsNoWarning() bool {
-	return p.PubDate.IsZero()
+	return p.Title == "" || p.Description == "" || p.PubDate.IsZero()
 }
