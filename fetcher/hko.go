@@ -10,6 +10,8 @@ import (
 )
 
 const rssUrl = "https://rss.weather.gov.hk/rss/WeatherWarningBulletin.xml"
+const fiveMinutes = 300
+const twoMinutes = 120
 
 type HKOInfo struct {
 	Title       string `xml:"channel>item>title"`
@@ -54,6 +56,11 @@ func Fetch(c chan warning.WeatherWarning) {
 
 	for {
 		xmlBytes := helper.GetHttpContent(rssUrl)
+		if xmlBytes == nil {
+			// no internet connection, sleep longer and try again
+			time.Sleep(time.Second * fiveMinutes)
+			continue
+		}
 
 		info := parse(xmlBytes)
 		if !info.IsWarningMessage() {
@@ -70,6 +77,6 @@ func Fetch(c chan warning.WeatherWarning) {
 			c <- result
 		}
 
-		time.Sleep(time.Second * 120)
+		time.Sleep(time.Second * twoMinutes)
 	}
 }
